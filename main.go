@@ -21,29 +21,31 @@ var (
 	Left  = Direction{-1, 0}
 	Right = Direction{1, 0}
 
-	Directions = []Direction{Up, Down, Left, Right}
+	Directions = Path{Up, Down, Left, Right}
 )
 
-func Solve(level Level) []Direction {
+func Solve(level Level) (minPath Path) {
 	seen := map[Level]bool{level: true}
-	var solve func(state State, path []Direction) []Direction
-	solve = func(state State, path []Direction) []Direction {
+	var solve func(state State, path Path)
+	solve = func(state State, path Path) {
 		for _, dir := range Directions {
 			newState, ok := state.MaybeMove(dir)
 			if ok && !seen[newState.Level] {
-				newPath := append(path, dir)
-				if newState.Won() {
-					return newPath
-				}
 				seen[newState.Level] = true
-				if solution := solve(newState, newPath); solution != nil {
-					return solution
+				newPath := make(Path, len(path))
+				copy(newPath, path)
+				newPath = append(newPath, dir)
+				if newState.CoinsRemaining == 0 &&
+					(len(minPath) == 0 || len(newPath) < len(minPath)) {
+					minPath = newPath
+				} else {
+					solve(newState, newPath)
 				}
 			}
 		}
-		return nil
 	}
-	return solve(level.NewState(), nil)
+	solve(level.NewState(), nil)
+	return
 }
 
 type State struct {
@@ -99,10 +101,6 @@ func (v State) MaybeMove(dir Direction) (state State, ok bool) {
 		fromCell.Tile = NoTile
 	}
 	return
-}
-
-func (v State) Won() bool {
-	return v.CoinsRemaining == 0
 }
 
 type Level struct {
@@ -218,8 +216,10 @@ func (v Direction) String() string {
 	}
 }
 
+type Path []Direction
+
 func main() {
-	for i := 0; i < 10; i++ {
+	for i := 0; i < len(Levels); i++ {
 		fmt.Printf("Level %d: ", i+1)
 		fmt.Println(Solve(Levels[i]))
 	}
