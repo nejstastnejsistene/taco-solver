@@ -110,21 +110,32 @@ type Level struct {
 	Cells      [25]Cell
 }
 
-func MustParseLevel(ss []string) Level {
+func MustParseLevel(num int, ss []string) Level {
 	if len(ss) == 0 {
-		panic("level should have at least one row")
+		panic(fmt.Sprintf("level %d: level should have at least one row", num))
 	}
 	if len(ss[0]) == 0 || len(ss[0])%2 != 0 {
-		panic("rows should have an even, non-zero number of characters")
+		panic(fmt.Sprintf("level %d: rows should have an even, non-zero number of characters", num))
 	}
 	rows := len(ss)
 	cols := len(ss[0]) / 2
 	level := Level{Rows: rows, Cols: cols}
 	for r, s := range ss {
 		if len(s) != len(ss[0]) {
-			panic("each row should be the same length")
+			panic(fmt.Sprintf("level %d: each row should be the same length", num))
 		}
 		for c := 0; c < cols; c++ {
+			cell := Cell{Tile(s[2*c]), Object(s[2*c+1])}
+			switch cell.Tile {
+			case RedTile, SolidTile, CrackedTile, NoTile:
+			default:
+				panic(fmt.Sprintf("level %d: invalid tile: \"%s\"", num, cell.Tile))
+			}
+			switch cell.Object {
+			case Taco, BlueBlock, RedBlock, TrelloCoin, NoObject:
+			default:
+				panic(fmt.Sprintf("level %d: invalid object: \"%s\"", num, cell.Object))
+			}
 			level.Cells[r*cols+c] = Cell{Tile(s[2*c]), Object(s[2*c+1])}
 		}
 	}
@@ -208,5 +219,8 @@ func (v Direction) String() string {
 }
 
 func main() {
-	fmt.Println(Solve(Levels[3]))
+	for i := 0; i < 10; i++ {
+		fmt.Printf("Level %d: ", i+1)
+		fmt.Println(Solve(Levels[i]))
+	}
 }
