@@ -23,6 +23,14 @@ var (
 			"-#      ",
 			"XJX X -J",
 		},
+		// Level 4
+		[]string{
+			"=JXJ-   X^",
+			"X   -J  XJ",
+			"= X^  XJ-J",
+			"-^=W=^-^-P",
+			"    X   -J",
+		},
 	}
 )
 

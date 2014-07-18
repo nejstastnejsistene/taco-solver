@@ -13,8 +13,6 @@ const (
 	RedBlock          = '^'
 	TrelloCoin        = 'J'
 	NoObject          = ' '
-
-	MaxLevelSize = 25
 )
 
 var (
@@ -22,36 +20,36 @@ var (
 	Down  = Direction{0, 1}
 	Left  = Direction{-1, 0}
 	Right = Direction{1, 0}
+
+	Directions = []Direction{Up, Down, Left, Right}
 )
+
+func Solve(level Level) []Direction {
+	seen := map[Level]bool{level: true}
+	var solve func(state State, path []Direction) []Direction
+	solve = func(state State, path []Direction) []Direction {
+		for _, dir := range Directions {
+			newState, ok := state.MaybeMove(dir)
+			if ok && !seen[newState.Level] {
+				newPath := append(path, dir)
+				if newState.Won() {
+					return newPath
+				}
+				seen[newState.Level] = true
+				if solution := solve(newState, newPath); solution != nil {
+					return solution
+				}
+			}
+		}
+		return nil
+	}
+	return solve(level.NewState(), nil)
+}
 
 type State struct {
 	Row, Col       int
 	CoinsRemaining int
 	Level
-}
-
-func NewState(level Level) State {
-	r, c := FindTaco(level)
-	coins := 0
-	for r := 0; r < level.Rows; r++ {
-		for c := 0; c < level.Cols; c++ {
-			if level.Cell(r, c).Object == TrelloCoin {
-				coins++
-			}
-		}
-	}
-	return State{r, c, coins, level}
-}
-
-func FindTaco(level Level) (r, c int) {
-	for r = 0; r < level.Rows; r++ {
-		for c = 0; c < level.Cols; c++ {
-			if level.Cell(r, c).Object == Taco {
-				return
-			}
-		}
-	}
-	panic("taco is nowhere to be found!")
 }
 
 func (v State) MaybeMove(dir Direction) (state State, ok bool) {
@@ -109,7 +107,7 @@ func (v State) Won() bool {
 
 type Level struct {
 	Rows, Cols int
-	Cells      [MaxLevelSize]Cell
+	Cells      [25]Cell
 }
 
 func MustParseLevel(ss []string) Level {
@@ -131,6 +129,30 @@ func MustParseLevel(ss []string) Level {
 		}
 	}
 	return level
+}
+
+func (v Level) NewState() State {
+	r, c := v.FindTaco()
+	coins := 0
+	for r := 0; r < v.Rows; r++ {
+		for c := 0; c < v.Cols; c++ {
+			if v.Cell(r, c).Object == TrelloCoin {
+				coins++
+			}
+		}
+	}
+	return State{r, c, coins, v}
+}
+
+func (v Level) FindTaco() (r, c int) {
+	for r = 0; r < v.Rows; r++ {
+		for c = 0; c < v.Cols; c++ {
+			if v.Cell(r, c).Object == Taco {
+				return
+			}
+		}
+	}
+	panic("taco is nowhere to be found!")
 }
 
 func (v *Level) Cell(r, c int) *Cell {
@@ -170,12 +192,21 @@ type Direction struct {
 	Dx, Dy int
 }
 
+func (v Direction) String() string {
+	switch v {
+	case Up:
+		return "Up"
+	case Down:
+		return "Down"
+	case Left:
+		return "Left"
+	case Right:
+		return "Right"
+	default:
+		panic("invalid direction")
+	}
+}
+
 func main() {
-	state := NewState(Levels[0])
-	fmt.Println(state)
-	state, ok := state.MaybeMove(Right)
-	fmt.Println(state, ok)
-	state, ok = state.MaybeMove(Right)
-	fmt.Println(state, ok)
-	fmt.Println(state.Won())
+	fmt.Println(Solve(Levels[3]))
 }
