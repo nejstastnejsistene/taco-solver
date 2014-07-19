@@ -68,5 +68,5 @@ func main() {
 		log.Fatal("TOKEN not specified")
 	}
 	http.HandleFunc("/", HandleWebhook)
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(":" + os.Getenv("PORT"), nil)
 }
