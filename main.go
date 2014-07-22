@@ -11,6 +11,8 @@ import (
 	"strings"
 )
 
+const Username = "TacoBot"
+
 var (
 	token        string
 	levelPattern = regexp.MustCompile(`.*level (\d+).*`)
@@ -22,17 +24,22 @@ func HandleWebhook(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("invalid token"))
 		return
 	}
-    if r.FormValue("user_name") == "slackbot" {
-        return
-    }
+	username := r.FormValue("user_name")
+	if username == "slackbot" {
+		return
+	}
 	text := strings.ToLower(r.FormValue("text"))
+	fmt.Printf("%s: %s\n", username, text)
+
 	match := levelPattern.FindStringSubmatch(text)
 	if len(match) < 2 {
-		if strings.Contains(text, "thank") && strings.Contains(text, "taco"){
-            Respond(w, "Bark! Bark!")
+		// Bark twice if someone mentions taco!
+		if strings.Contains(text, "taco") {
+			Respond(w, "Bark! Bark!")
 		}
 		return
 	}
+	// Print the solution to a level if someone says "level %d".
 	level64, err := strconv.ParseInt(match[1], 10, 8)
 	if err != nil {
 		return
@@ -51,13 +58,15 @@ func HandleWebhook(w http.ResponseWriter, r *http.Request) {
 }
 
 func Respond(w http.ResponseWriter, text string) {
+	fmt.Printf("%s: %s\n", Username, text)
 	buf, err := json.Marshal(map[string]string{
-        "user_name": "TacoBot",
-		"text": text,
+		"user_name": Username,
+		"text":      text,
 	})
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
+		fmt.Fprintf(os.Stderr, err.Error())
 		return
 	}
 	w.Write(buf)
@@ -68,5 +77,5 @@ func main() {
 		log.Fatal("TOKEN not specified")
 	}
 	http.HandleFunc("/", HandleWebhook)
-	http.ListenAndServe(":" + os.Getenv("PORT"), nil)
+	http.ListenAndServe(":"+os.Getenv("PORT"), nil)
 }
