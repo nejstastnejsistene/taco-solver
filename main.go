@@ -35,7 +35,7 @@ func HandleWebhook(w http.ResponseWriter, r *http.Request) {
 	if len(match) < 2 {
 		// Bark twice if someone mentions taco!
 		if strings.Contains(text, "taco") {
-			Respond(w, "Bark! Bark!")
+			Respond(w, "Roo! Roo!")
 		}
 		return
 	}
