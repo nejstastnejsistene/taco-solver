@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"math/rand"
 	"regexp"
 	"strconv"
 	"strings"
@@ -35,7 +36,11 @@ func HandleWebhook(w http.ResponseWriter, r *http.Request) {
 	if len(match) < 2 {
 		// Bark twice if someone mentions taco!
 		if strings.Contains(text, "taco") {
-			Respond(w, "Roo! Roo!")
+			if rand.Float64() < 0.5 {
+				Respond(w, "Ouaf! Ouaf!") // French
+			} else {
+				Respond(w, "Roo! Roo!") // English
+			}
 		}
 		return
 	}
